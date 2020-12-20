@@ -1,0 +1,71 @@
+---
+title: "something"
+author: "Maximilian Ernst"
+date: "20 11 2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+pacman::p_load(tidyverse, ggplot2, here, magrittr, lubridate, psych)
+```
+
+```{r data cleaning}
+data <- read_csv(here("data", "ESMData.csv"))
+
+data %<>% mutate(date = dmy(date))
+
+data %<>% rename(evn_infl = evn_inflmood)
+
+data %<>% 
+  unite(datetime, c(date, resptime_e), sep = "-") %>% 
+  mutate(datetime = parse_date_time(datetime, "ymdHMS"))
+```
+ 
+```{r}
+moodnames <- select(data, contains("mood")) %>% names
+
+moodgroups = list(g1 = moodnames[1:4],
+              g2 = moodnames[5:8],
+              g3 = moodnames[9:13])
+
+get_mood_group <- function(char){
+  for(i in 1:3){
+    if(char %in% moodgroups[[i]]){return(i)}
+  }
+  return(NA)
+}
+
+map(moodnames, 
+    ~data %>%
+  ggplot() + 
+    geom_point(
+      aes_string(x = "datetime", 
+                 y = .x)
+      ) +
+    geom_smooth(
+      aes_string(x = "datetime",
+              y = .x)
+    )
+  )
+
+data %>% 
+  select(contains("mood")) %>% 
+  cor.plot(numbers = FALSE)
+
+data %>% select(mood_down, mood_lonely, mood_anxious) %>% 
+  cor.plot()
+
+data %>% 
+  ggplot(aes(x = datetime, y = mood_down)) + geom_point() + geom_smooth()
+
+data %>% mutate(meanmood = mood_down + mood_lonely + mood_anxious) %>% 
+  ggplot(aes(x = datetime, y = meanmood)) + geom_point() + geom_smooth()
+
+data %>% mutate(meanmood = pmax(mood_down + mood_lonely + mood_anxious)) %>% 
+  ggplot(aes(x = datetime, y = meanmood)) + geom_point() + geom_smooth() +
+  facet_wrap(~beepno)
+```
