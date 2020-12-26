@@ -126,15 +126,6 @@ data_exp <- complete(data, dayno, beepno)
 
 # average daily -----------------------------------------------------------
 
-unique_naomit <- function(vec){
-  if(all(is.na(vec))){
-    return(NA)
-  }
-  else{
-    return(unique(as.vector(na.omit(vec))))
-  }
-}
-
 data %$% aov(phy_hungry ~ dayno*beepno) %>% summary
 
 data_exp %>% filter(dayno < 10) %>% 
@@ -245,12 +236,6 @@ lm(evn_niceday ~ mood_down_mean + mood_enthus_mean + mood_satisfi_mean +
 lm(evn_niceday ~ mood_enthus_mean, data = data_daily) %>% 
   summary
 
-statfromname <- function(name){
-  if(str_detect(name, "mean")){return("mean")}
-  if(str_detect(name, "sd")){return("sd")}
-  if(str_detect(name, "min")){return("min")}
-  if(str_detect(name, "max")){return("max")}
-}
 
 sumstat_cors %<>% mutate(statistic = map_chr(sumstat_cors$names, statfromname))
 
@@ -266,16 +251,6 @@ data_daily %<>% mutate(time = rep(c("00:00:00", "23:59:59"), 238)) %>%
 data_exp %>% ggplot() +
   geom_density(aes(x = time))
 
-
-get_value_evn_nd <- function(dayno, value, keys){
-  if(!is.na(value)){
-    return(value)
-  }
-  else{
-    key = filter(keys, dayno == !!dayno)
-    return(key$evn_niceday)
-  }
-}
 
 #safe <- data_exp
 
