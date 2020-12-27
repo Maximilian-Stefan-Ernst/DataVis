@@ -234,6 +234,20 @@ x_labels <-
 lower_week = -1
 upper_week = 1
 
+line_labels <- 
+  data.frame(
+    labels = c(
+      "Momentary enthusiuasm",
+      "Was this a nice day?",
+      "Weekly measured \n depression"
+    ),
+    x = as_datetime(c(
+      "2012-08-20 04:00:00 UTC",
+      "2012-08-20 04:00:00 UTC",
+      "2012-08-20 04:00:00 UTC"
+    )),
+    y = c(0.3, -1, 0.8),
+    color = c("1","2","3")) 
 
 ggplot() +
   # geom_line(
@@ -292,7 +306,13 @@ ggplot() +
   theme(axis.title.x = element_text(margin = margin(20, 0, 0, 0)),
         panel.grid.major.y = element_blank(),
         legend.position = "none",
-        axis.ticks.y = element_line())
+        axis.ticks.y = element_line()) +
+  geom_text(
+    data = line_labels, 
+    aes(x = x, y = y, label = labels, color = color),
+    size = 2.5, hjust = 0
+    ) +
+  scale_color_manual(values=c("#000000", "#E69F00", "#56B4E9"))
 
   # theme(legend.position = "none",
   #       plot.title = element_text(margin=margin(10,0,12,0)),
@@ -405,7 +425,7 @@ data_daily_sum %>%
   coord_cartesian(ylim = c(-2.5, 2.5), clip = "off")
 
 
-ggsave("plot7.svg")#, 
+ggsave("plot9.svg")#, 
 # width = 20,
 # height = 50,
 # units = "cm")
