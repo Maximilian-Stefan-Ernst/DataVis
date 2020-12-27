@@ -168,19 +168,19 @@ data_weekly <- data_exp %>%
   mutate(evn_niceday = scale(evn_niceday)) %>% 
   group_by(studyweek) %>% 
   summarise(across(contains("SCL"), unique_naomit),
-            evn_niceday = mean(evn_niceday, na.rm = T)) 
+            n_obs = length(na.omit(evn_niceday)),
+            across(c(evn_niceday), 
+                   list(mean = mean, sd = sd, max = max, min = min), 
+                   na.rm = T))
+
+data_weekly %<>% rename(evn_niceday = evn_niceday_mean)
+
+data_weekly %<>% mutate(
+  evn_niceday_max = ifelse(is.infinite(evn_niceday_max), NA, evn_niceday_max),
+  evn_niceday_min = ifelse(is.infinite(evn_niceday_min), NA, evn_niceday_min))
 
 data_weekly$SCL_mean = rowMeans(select(data_weekly, 
                                        contains("SCL")), na.rm = T)
-
-data_weekly %>% 
-  pivot_longer(contains("SCL"), 
-               values_to = "value", 
-               names_to = "variable") %>% 
-  ggplot() + 
-  geom_line(aes(x = studyweek, y = value)) +
-  #geom_smooth(aes(x = week, y = value)) +
-  facet_wrap(~variable)
 
 # data_weekly <- data_exp %>% filter(!is.na(SCL.90.R.14)) %>% 
 #   group_by(date) %>% 
@@ -190,11 +190,10 @@ data_weekly %>%
 data_weekly %<>% mutate(date = first_monday + weeks(studyweek),
                         datetime = as_datetime(str_c(date, "-00:00:00")))
 
-data_weekly %>% ggplot() +
-  geom_line(aes(x = date, y = SCL_mean), size = 2)
-
 
 ### mean day/day/week plot
+
+data_weekly_safe <- data_weekly
 
 data_weekly <- data.frame(studyweek = rep(c(0:34), each = 2)) %>% 
   left_join(data_weekly, by = "studyweek")
@@ -217,6 +216,7 @@ data_daily_sum <- data_exp %>%
   summarise(
     date = unique(na.omit(date)),
     evn_niceday = unique_naomit(evn_niceday),
+    n_obs = length(na.omit(mood_enthus)),
     across(c(mood_enthus), 
            list(mean = mean, sd = sd, max = max, min = min),
            na.rm = T),

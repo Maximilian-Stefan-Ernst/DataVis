@@ -302,11 +302,22 @@ ggplot() +
 
 ###
 
-cor(data_weekly$SCL_mean[2:35], data_weekly$evn_niceday[1:34], use = "pairwise.complete.obs")
 
-data_weekly %<>%
+# weekly plot -------------------------------------------------------------
+
+
+cor(data_weekly$SCL_mean[2:35], data_weekly$evn_niceday[1:34], use = "pairwise.complete.obs")
+cor(data_weekly$SCL_mean[2:35], data_weekly$evn_niceday_min[1:34], use = "pairwise.complete.obs")
+cor(data_weekly$SCL_mean[2:35], data_weekly$evn_niceday_max[1:34], use = "pairwise.complete.obs")
+cor(data_weekly$SCL_mean[2:35], data_weekly$evn_niceday_sd[1:34], use = "pairwise.complete.obs")
+
+latest_start <- min(data$date) + weeks(10)
+
+latest_null <- min(data$date) + weeks(18)
+
+data_weekly_safe %<>%
   mutate(
-    SCL_mean_ribbon = c(scale(SCL_mean)[3:70], NA, NA),
+    SCL_mean_ribbon = c(scale(SCL_mean)[2:35], NA),
     ribbon_max_1 = pmax((-1) * SCL_mean_ribbon, evn_niceday),
     ribbon_min_1 = pmin((-1) * SCL_mean_ribbon, evn_niceday),
     ribbon_max_2 = pmax((-1) * SCL_mean_ribbon, evn_niceday),
@@ -318,12 +329,12 @@ data_weekly %<>%
     ribbon_color = ifelse(evn_niceday > SCL_mean_ribbon, 1, 0)
   )
 
-data_weekly %>%
-  ggplot() +
-  geom_ribbon(
-    aes(x = date, ymin = evn_niceday, ymax = (-1) *SCL_mean_ribbon),
-    alpha = .2
-  ) +
+data_weekly_safe %>%
+  # ggplot() +
+  # geom_ribbon(
+  #   aes(x = date, ymin = evn_niceday, ymax = (-1) *SCL_mean_ribbon),
+  #   alpha = .2
+  # ) +
   # geom_ribbon(
   #   aes(x = date, ymin = ribbon_min_1,
   #       ymax = ribbon_max_1),
@@ -353,23 +364,30 @@ data_weekly %>%
                minor_breaks = NULL, 
                date_labels ="%b"
                ) +
-  coord_cartesian(ylim = c(-2.5, 2.5), clip="off")
+  coord_cartesian(ylim = c(-2.5, 2.5), clip="off") +
+  # geom_smooth(aes(x = date, y = evn_niceday), 
+  #           color = "#E69F00", size = 1, se = F) +
+  # geom_smooth(aes(x = date - weeks(1),
+  #               y = (-1) * scale(SCL_mean)),
+  #           color = "#56B4E9", size = 1, se = F) +
+  geom_vline(xintercept = latest_start) +
+  geom_vline(xintercept = latest_null)
+  
 
 scales::show_col(colorblind_pal()(8))
-
-
-ggsave("plot7.svg")#, 
-# width = 20,
-# height = 50,
-# units = "cm")
-
 
 # daily plot --------------------------------------------------------------
 
 data_daily_sum %>%
   ggplot() +
-  geom_line(aes(x = date, y = evn_niceday), color = "#E69F00") +
-  geom_line(aes(x = date, y = mood_enthus_mean), color = "#000000") +
+  # geom_ribbon(
+  #   aes(x = date, ymin = evn_niceday, ymax = mood_enthus_mean),
+  #   alpha = .2
+  # ) +
+  geom_line(aes(x = date, y = evn_niceday), 
+            color = "#E69F00", alpha = 1) +
+  geom_line(aes(x = date, y = mood_enthus_mean), 
+            color = "#000000", alpha = .6) +
   theme_tufte() +
   scale_y_continuous(
     name = "Standardized Value",
@@ -387,3 +405,7 @@ data_daily_sum %>%
   coord_cartesian(ylim = c(-2.5, 2.5), clip = "off")
 
 
+ggsave("plot7.svg")#, 
+# width = 20,
+# height = 50,
+# units = "cm")
