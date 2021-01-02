@@ -1,0 +1,18 @@
+Anspruch an graphische Darstellungen (nach Tufte)
+19
+๏ Graphische Darstellungen sollten:
+‣ die Daten zeigen
+‣ den Betrachter dazu bringen, eher über die Substanz nachzudenken als
+über die Methodik, das Grafikdesign, die Technologie der grafischen
+Produktion oder etwas anderes
+‣ nicht verzerren, was die Daten zu sagen haben
+‣ viele Zahlen auf kleinem Raum präsentieren
+‣ große Datensätze kohärent machen
+‣ das Auge ermutigen, verschiedene Daten zu vergleichen
+‣ die Daten auf mehreren Detailebenen offenbaren, von einem breiten
+Überblick bis zur Feinstruktur
+‣ einem relativ klaren Zweck dienen — der Beschreibung, Erkundung,
+Tabellierung oder Dekoration
+‣ eng mit den statistischen und verbalen Beschreibungen eines
+Datensatzes verbunden sein.
+๏ “Graphics reveal data.

@@ -37,7 +37,7 @@ ggplot() +
   #   data = filter(data_weekly,
   #                 studyweek < upper_week, studyweek > lower_week),
   #   aes(x = (datetime_help-weeks(studyweek)), y = evn_niceday),
-  #   alpha = .5
+  #   alpha = .5, color = "#E69F00"
   # ) +
   geom_line(
     data = filter(
@@ -96,6 +96,11 @@ ggplot() +
     size = 2.5, hjust = 0
     ) +
   scale_color_manual(values=c("#000000", "#E69F00", "#56B4E9"))
+
+#Verbesserte Version: 
+"#000000"
+"#ffd047"
+"#0084b7"
 
   # theme(legend.position = "none",
   #       plot.title = element_text(margin=margin(10,0,12,0)),
@@ -214,6 +219,8 @@ scales::show_col(colorblind_pal()(4))
 data %>% 
   ggplot() +
   geom_line(aes(x = date, y = concentrat), color = "#009E73") +
+  geom_ribbon(aes(x = date, ymax = concentrat, ymin = 0),
+              fill = "#009E73", alpha = .1) +
   theme_tufte() +
   scale_y_continuous(
     name = "Antidepressant \n dosis (mg)",
@@ -227,7 +234,7 @@ data %>%
   )
 
 
-ggsave("anti.svg")#, 
+ggsave("data.svg")#, 
 # width = 20,
 # height = 50,
 # units = "cm")
