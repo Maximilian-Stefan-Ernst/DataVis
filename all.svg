@@ -39,9 +39,9 @@
      inkscape:window-height="986"
      id="namedview959"
      showgrid="false"
-     inkscape:zoom="1.0612245"
-     inkscape:cx="765.4195"
-     inkscape:cy="377.99988"
+     inkscape:zoom="2.122449"
+     inkscape:cx="919.67385"
+     inkscape:cy="228.75472"
      inkscape:window-x="-11"
      inkscape:window-y="-11"
      inkscape:window-maximized="1"
@@ -1281,4 +1281,9 @@
      style="fill:none;stroke:#ebebeb;stroke-width:1.07000005;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:10"
      id="polyline4448-7"
      transform="matrix(1,0,0,0.31712953,458.63853,170.03076)" />
+  <polyline
+     points="37.54,80.23 357.83,80.23 "
+     style="fill:none;stroke:#e69f00;stroke-width:1.07000005;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:10;stroke-opacity:0.5"
+     id="polyline6078"
+     transform="matrix(0.25437892,0,0,1,786.01117,68.255137)" />
 </svg>
