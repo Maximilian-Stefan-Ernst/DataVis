@@ -338,9 +338,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="1.4"
-     inkscape:cx="503.85483"
-     inkscape:cy="236.68601"
+     inkscape:zoom="0.7"
+     inkscape:cx="445.4858"
+     inkscape:cy="107.18486"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -361,7 +361,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title />
+        <dc:title></dc:title>
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -489,10 +489,10 @@
        transform="matrix(0.26458333,0,0,0.26458333,-290.76934,-4.7168074)" />
     <line
        x1="-232.26202"
-       y1="52.937084"
+       y1="55.208874"
        x2="-232.26202"
        y2="-3.2668905"
-       style="fill:none;stroke:#000000;stroke-width:0.28077725;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:10"
+       style="fill:none;stroke:#000000;stroke-width:0.28639561;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:10"
        id="line6558" />
     <polyline
        points="405.60,191.99 408.34,191.99 "
@@ -1053,7 +1053,7 @@
          sodipodi:role="line"
          id="tspan8532"
          x="-374.91757"
-         y="67.331726" /></text>
+         y="67.331726"></tspan></text>
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:1.94027781px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
@@ -1198,19 +1198,5 @@
          id="tspan14400"
          x="-282.19751"
          y="-12.548341">Depressive Symptoms and niceness of the day over time</tspan></text>
-    <text
-       xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:1.94027781px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
-       x="-231.29881"
-       y="-1.8380973"
-       id="text8438-4-1"><tspan
-         sodipodi:role="line"
-         id="tspan1271"
-         x="-231.29881"
-         y="-1.8380973">The participant knows that the</tspan><tspan
-         sodipodi:role="line"
-         id="tspan1273"
-         x="-231.29881"
-         y="0.58724988">antidepressant is reduced to 0</tspan></text>
   </g>
 </svg>

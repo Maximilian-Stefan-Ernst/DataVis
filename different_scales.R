@@ -44,12 +44,12 @@ line_labels <-
     color = c("1","2","3")) 
 
 ggplot() +
-  # geom_line(
-  #   data = filter(data_weekly,
-  #                 studyweek < upper_week, studyweek > lower_week),
-  #   aes(x = (datetime_help-weeks(studyweek)), y = evn_niceday),
-  #   alpha = .5, color = "#E69F00"
-  # ) +
+  geom_line(
+    data = filter(data_weekly,
+                  studyweek < upper_week, studyweek > lower_week),
+    aes(x = (datetime_help-weeks(studyweek)), y = evn_niceday),
+    alpha = .5, color = "#E69F00"
+  ) +
   geom_line(
     data = filter(
       mutate(data_weekly, SCL_mean = (-1)*scale(SCL_mean),
