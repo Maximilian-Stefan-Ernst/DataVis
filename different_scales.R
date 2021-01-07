@@ -12,7 +12,18 @@ x_labels <-
     y = rep(-3.0, 7),
     label = c("Mo", "Tue", "We", "Thu", "Fr", "Sa", "So"))
 
+# cardat <- data_daily_sum %>% select(contains("mean"), evn_niceday) %>% 
+#   map_dbl(function(x){cor(x, y = data_daily_sum$evn_niceday, use = "pairwise.complete.obs")}) %>% 
+#   data.frame
+#   
+# cardat$value = cardat$.
 
+"#000000"
+#yellow <- "#ffd047"
+#blue <- "#0084b7"
+"#000000"
+yellow <- "#e69f00"
+blue <- "#56B4E9"
 
 lower_week = -1
 upper_week = 1
@@ -45,12 +56,12 @@ ggplot() +
              studyweek = studyweek - 1),
       studyweek < upper_week, studyweek > lower_week),
     aes(x = (datetime_help-weeks(studyweek + 1)), y = SCL_mean),
-    color = "#56B4E9", alpha = .5, size = 1
+    color = blue, alpha = .5, size = 1
   ) +
   geom_line(
     data = filter(data_daily, studyweek < upper_week, studyweek > lower_week), 
     aes(x = (datetime-weeks(studyweek)), y = evn_niceday, group = dayno),
-    size = 1.2, color = "#E69F00") + 
+    size = 1.2, color = yellow) + 
   # geom_line(
   #   data = filter(data_daily_mean,
   #                 studyweek < upper_week, studyweek > lower_week), 
@@ -63,7 +74,7 @@ ggplot() +
     aes(x = (datetime-weeks(studyweek)), y = mood_enthus),
     color = "#000000",
     size = 1,
-    shape = 1
+    shape = 16
   ) +
   geom_line(
     data = filter(
@@ -85,22 +96,22 @@ ggplot() +
                    minor_breaks = NULL,
                    labels = NULL) +
   coord_cartesian(ylim = c(-2.5, 2.5), clip="off") +
-  geom_text(data = x_labels, aes(x = x, y = y, label = label)) +
+  geom_text(data = x_labels, aes(x = x, y = y, label = label,
+                                 family = "sans")) +
   theme(axis.title.x = element_text(margin = margin(20, 0, 0, 0)),
         panel.grid.major.y = element_blank(),
         legend.position = "none",
-        axis.ticks.y = element_line()) +
+        axis.ticks.y = element_line(),
+        text=element_text(family="sans")) +
   geom_text(
     data = line_labels, 
     aes(x = x, y = y, label = labels, color = color),
-    size = 2.5, hjust = 0
+    size = 2.5, hjust = 0, family = "sans"
     ) +
-  scale_color_manual(values=c("#000000", "#E69F00", "#56B4E9"))
+  scale_color_manual(values=c("#000000", yellow, "#56B4E9")) +
+  coord_cartesian(ylim = c(-2.5, 2.5), clip = "off")
 
 #Verbesserte Version: 
-"#000000"
-"#ffd047"
-"#0084b7"
 
   # theme(legend.position = "none",
   #       plot.title = element_text(margin=margin(10,0,12,0)),
@@ -120,8 +131,10 @@ cor(data_weekly$SCL_mean[2:35], data_weekly$evn_niceday_max[1:34], use = "pairwi
 cor(data_weekly$SCL_mean[2:35], data_weekly$evn_niceday_sd[1:34], use = "pairwise.complete.obs")
 
 latest_start <- min(data$date) + weeks(10)
-
 latest_null <- min(data$date) + weeks(18)
+
+data_weekly_safe$SCL_mean[1] <- NA
+data_weekly_safe$evn_niceday[35] <- NA
 
 data_weekly_safe %<>%
   mutate(
@@ -141,7 +154,7 @@ data_weekly_safe %>%
   ggplot() +
   geom_ribbon(
     aes(x = date, ymin = evn_niceday, ymax = (-1) *SCL_mean_ribbon),
-    alpha = .2
+    alpha = .1
   ) +
   # geom_ribbon(
   #   aes(x = date, ymin = ribbon_min_1,
@@ -156,10 +169,10 @@ data_weekly_safe %>%
   #   alpha = .5
   # ) +
   geom_line(aes(x = date, y = evn_niceday), 
-            color = "#E69F00", size = 1) +
+            color = yellow, size = 1) +
   geom_line(aes(x = date - weeks(1),
                 y = (-1) * scale(SCL_mean)),
-            color = "#56B4E9", size = 1) +
+            color = blue, size = 1, alpha = .5) +
   theme_tufte()  +
   scale_y_continuous(
     name = "Standardized Value",
@@ -180,38 +193,40 @@ data_weekly_safe %>%
   #               y = (-1) * scale(SCL_mean)),
   #           color = "#56B4E9", size = 1, se = F) +
   geom_vline(xintercept = latest_start) +
-  geom_vline(xintercept = latest_null)
+  geom_vline(xintercept = latest_null) +
+  theme(text=element_text(family="sans")) +
+  coord_cartesian(ylim = c(-2.5, 2.5), clip = "off")
   
 
 scales::show_col(colorblind_pal()(4))
 
 # daily plot --------------------------------------------------------------
 
-# data_daily_sum %>%
-#   ggplot() +
-#   # geom_ribbon(
-#   #   aes(x = date, ymin = evn_niceday, ymax = mood_enthus_mean),
-#   #   alpha = .2
-#   # ) +
-#   geom_line(aes(x = date, y = evn_niceday), 
-#             color = "#E69F00", alpha = 1) +
-#   geom_line(aes(x = date, y = mood_enthus_mean), 
-#             color = "#000000", alpha = .6) +
-#   theme_tufte() +
-#   scale_y_continuous(
-#     name = "Standardized Value",
-#     breaks = c(-2,-1, 0, 1, 2),
-#     minor_breaks = NULL,
-#     labels = NULL
-#   ) +
-#   scale_x_date(
-#     name = NULL,
-#     breaks = as_date(c("2012-08-01", "2012-12-01", "2013-04-01")),
-#     minor_breaks = NULL,
-#     date_labels = "%b",
-#     limits = as_date(c("2012-07-30", "2013-04-09"))
-#   ) +
-#   coord_cartesian(ylim = c(-2.5, 2.5), clip = "off")
+data_daily_sum %>%
+  ggplot() +
+  # geom_ribbon(
+  #   aes(x = date, ymin = evn_niceday, ymax = mood_enthus_mean),
+  #   alpha = .2
+  # ) +
+  geom_line(aes(x = date, y = evn_niceday),
+            color = yellow, alpha = 1) +
+  geom_line(aes(x = date, y = mood_enthus_mean),
+            color = "#000000", alpha = .6) +
+  theme_tufte() +
+  scale_y_continuous(
+    name = "Standardized Value",
+    breaks = c(-2,-1, 0, 1, 2),
+    minor_breaks = NULL,
+    labels = NULL
+  ) +
+  scale_x_date(
+    name = NULL,
+    breaks = as_date(c("2012-08-01", "2012-12-01", "2013-04-01")),
+    minor_breaks = NULL,
+    date_labels = "%b",
+    limits = as_date(c("2012-07-30", "2013-04-09"))
+  ) +
+  coord_cartesian(ylim = c(-2.5, 2.5), clip = "off")
 
 
 # medicine plot -----------------------------------------------------------
@@ -231,10 +246,11 @@ data %>%
                minor_breaks = NULL, 
                date_labels ="%b",
                limits = as_date(c("2012-07-30", "2013-04-09"))
-  )
+  ) +
+  theme(text=element_text(family="sans"))
 
 
-ggsave("data.svg")#, 
+ggsave("weekly.svg")#, 
 # width = 20,
 # height = 50,
 # units = "cm")

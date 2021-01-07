@@ -6,7 +6,49 @@ output: pdf_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE)
+
+pacman::p_load(tidyverse, ggplot2, 
+               here, magrittr, lubridate, lavaan, ggx, hms,
+               viridis, ggthemes)
+
+source(here("little_helpers.R"), local = knitr::knit_global())
+source(here("R/tidy.R"), local = knitr::knit_global())
+
+Sys.setlocale("LC_ALL","English")
+
+"#000000"
+#yellow <- "#ffd047"
+#blue <- "#0084b7"
+blue <- "#56B4E9"
+"#000000"
+yellow <- "#e69f00"
+#blue <- "#8ee6ff"
+#yellow <- "#af7100"
+
+x_labels <- 
+  data.frame(
+    x = as_datetime(str_c(data_daily$datetime[seq(1, 14, 2)], "12:00:00")),
+    y = rep(-3.0, 7),
+    label = c("Mo", "Tue", "We", "Thu", "Fr", "Sa", "So"))
+
+lower_week = -1
+upper_week = 1
+
+line_labels <- 
+  data.frame(
+    labels = c(
+      "Momentary enthusiuasm",
+      "Was this a nice day?",
+      "Weekly measured \n depression"
+    ),
+    x = as_datetime(c(
+      "2012-08-20 04:00:00 UTC",
+      "2012-08-20 04:00:00 UTC",
+      "2012-08-20 04:00:00 UTC"
+    )),
+    y = c(0.3, -1, 0.8),
+    color = c("1","2","3")) 
 ```
 
 # Datensatz
@@ -25,8 +67,34 @@ Aufgrund der sehr komplexen Struktur der Daten habe ich mich zunächst dazu ents
 
 Dazu habe ich zunächst die Messungen der Items verschiedener Zeitskalen in einer Visualisierung dargestellt:
 
-```{r data_first}
-
+```{r data_first, warning=FALSE}
+ggplot() +
+  geom_line(
+    data = filter(data_weekly,
+                  studyweek < upper_week, studyweek > lower_week),
+    aes(x = (datetime_help-weeks(studyweek)), y = evn_niceday),
+    alpha = .5, color = "#E69F00"
+  ) +
+  geom_line(
+    data = filter(
+      mutate(data_weekly, SCL_mean = (-1)*scale(SCL_mean),
+             studyweek = studyweek - 1),
+      studyweek < upper_week, studyweek > lower_week),
+    aes(x = (datetime_help-weeks(studyweek + 1)), y = SCL_mean),
+    color = "red"
+  ) +
+  geom_line(
+    data = filter(data_daily, studyweek < upper_week, studyweek > lower_week), 
+    aes(x = (datetime-weeks(studyweek)), y = evn_niceday, group = dayno),
+   color = "blue") + 
+  geom_line(
+    data = filter(
+      mutate(data_exp, mood_enthus = scale(mood_enthus)),
+      studyweek < upper_week, studyweek > lower_week), 
+    aes(x = (datetime-weeks(studyweek)), y = mood_enthus, group = date),
+    color = "#000000"
+  ) + 
+  facet_grid(rows = vars(studyweek))
 ```
 
 
@@ -38,14 +106,48 @@ Zum zweiten möchte ich einen Vergleich zwischen den erhobenen Items auf verschi
 
 ?noch genauer auf Itemauswahl eingehen?
 
-Für den Vergleich habe ich dann die folgenden beiden Grafiken erstellt:
+```{r, include = FALSE}
+latest_start <- min(data$date) + weeks(10)
+latest_null <- min(data$date) + weeks(18)
 
-```{r daily_plot_old}
+data_weekly_safe$SCL_mean[1] <- NA
+data_weekly_safe$evn_niceday[35] <- NA
 
+data_weekly_safe %<>%
+  mutate(
+    SCL_mean_ribbon = c(scale(SCL_mean)[2:35], NA),
+    ribbon_max_1 = pmax((-1) * SCL_mean_ribbon, evn_niceday),
+    ribbon_min_1 = pmin((-1) * SCL_mean_ribbon, evn_niceday),
+    ribbon_max_2 = pmax((-1) * SCL_mean_ribbon, evn_niceday),
+    ribbon_min_2 = pmin((-1) * SCL_mean_ribbon, evn_niceday),
+    ribbon_max_1 = ifelse(evn_niceday > SCL_mean_ribbon, NA, ribbon_max_1),
+    ribbon_min_1 = ifelse(evn_niceday > SCL_mean_ribbon, NA, ribbon_min_1),
+    ribbon_max_2 = ifelse(evn_niceday < SCL_mean_ribbon, NA, ribbon_max_2),
+    ribbon_min_2 = ifelse(evn_niceday < SCL_mean_ribbon, NA, ribbon_min_2),
+    ribbon_color = ifelse(evn_niceday > SCL_mean_ribbon, 1, 0)
+  )
 ```
 
-```{r weekly_plot_old}
 
+Für den Vergleich habe ich dann die folgenden beiden Grafiken erstellt:
+
+```{r daily_plot_old, warning=FALSE}
+data_daily_sum %>%
+  ggplot() +
+  geom_line(aes(x = date, y = evn_niceday),
+            color = "red", alpha = 1) +
+  geom_line(aes(x = date, y = mood_enthus_mean),
+            color = "#000000", alpha = .6) 
+```
+
+```{r weekly_plot_old, warning=FALSE}
+data_weekly_safe %>%
+  ggplot() +
+  geom_line(aes(x = date, y = evn_niceday), 
+            color = "red", size = 1) +
+  geom_line(aes(x = date - weeks(1),
+                y = (-1) * scale(SCL_mean)),
+            color = "black", size = 1) 
 ```
 
 Man sieht, dass es keine systematische Veränderung im ersten Plot über die Zeit gibt, im zweiten Plot sieht man jedoch, dass sie die depressiven Symptome über die Zeit hinweg verschlimmern, während der Wochenmittelwert "schöner Tage" konstant bleibt. Diesem Effekt habe ich mich dann entschieden genauer zu untersuchen.
@@ -55,7 +157,14 @@ Dazu habe ich zunächst verschiedene weitere Aggregationsmethoden außer des Woc
 Dann habe ich den Zeitpunkt eingezeichnet, zu welchem der Testperson klar sein musste, dass sie keine Antidepressiva mehr erhält:
 
 ```{r weekly_plot_old_effekt}
-
+data_weekly_safe %>%
+  ggplot() +
+  geom_line(aes(x = date, y = evn_niceday), 
+            color = "red", size = 1) +
+  geom_line(aes(x = date - weeks(1),
+                y = (-1) * scale(SCL_mean)),
+            color = "black", size = 1) +
+  geom_vline(xintercept = latest_null)
 ```
 
 Diese Visualisierung legt eher den Schluss nahe, dass es sich um einen Placebo effekt handelt - das tägliche Item zeigt keine systematische Verschlechterung, die Depressionsskala schon.
@@ -68,13 +177,109 @@ Zunächst habe ich mich dazu entschieden, in der Überblicksgrafik nur Rohdaten 
 
 Dann habe ich die Data-Ink Ratio der Grafiken verbessert:
 
-```{r Data Ink Graphics}
-
+```{r Data Ink Overview, warning=FALSE}
+ggplot() +
+  geom_line(
+    data = filter(
+      mutate(data_weekly, SCL_mean = (-1)*scale(SCL_mean),
+             studyweek = studyweek - 1),
+      studyweek < upper_week, studyweek > lower_week),
+    aes(x = (datetime_help-weeks(studyweek + 1)), y = SCL_mean),
+    color = "red"
+  ) +
+  geom_line(
+    data = filter(data_daily, studyweek < upper_week, studyweek > lower_week), 
+    aes(x = (datetime-weeks(studyweek)), y = evn_niceday, group = dayno),
+   color = "blue") + 
+  geom_line(
+    data = filter(
+      mutate(data_exp, mood_enthus = scale(mood_enthus)),
+      studyweek < upper_week, studyweek > lower_week), 
+    aes(x = (datetime-weeks(studyweek)), y = mood_enthus, group = date),
+    color = "#000000"
+  ) + 
+  facet_grid(rows = vars(studyweek)) +
+  theme_minimal() +
+  scale_y_continuous(
+    name = "Standardized Value",
+    breaks = c(-2, -1, 0, 1, 2),
+    minor_breaks = NULL,
+    labels = NULL) +
+  scale_x_datetime(name = "First Studyweek", 
+                   breaks = data_daily$datetime[1:14],
+                   minor_breaks = NULL,
+                   labels = NULL) +
+  coord_cartesian(ylim = c(-2.5, 2.5), clip="off") +
+  theme(axis.title.x = element_text(margin = margin(20, 0, 0, 0)),
+        panel.grid.major.y = element_blank(),
+        legend.position = "none",
+        axis.ticks.y = element_line(),
+        text=element_text(family="sans"))
 ```
 
-## Farben
+I decided to set vertical lines at the end of each day to resemble the familiar look of a calendar. I also decided to set y-Axis breaks at the first and second standard deviation. (I have no idea where the 0 on the right side of the plot comes from; I later removed that in Inkscape)
 
-Als nächstes habe ich dann eine Farbskala ausgesucht, die robust gegenüber Farbenblindheit ist. Es handelt sich um die Skala "https://rdrr.io/cran/ggthemes/man/colorblind.html".
+```{r Data Ink weekly}
+data_weekly_safe %>%
+  ggplot() +
+  geom_line(aes(x = date, y = evn_niceday), 
+            color = "red", size = 1) +
+  geom_line(aes(x = date - weeks(1),
+                y = (-1) * scale(SCL_mean)),
+            color = "black", size = 1) +
+  geom_vline(xintercept = latest_null) +
+  theme_tufte()  +
+  scale_y_continuous(
+    name = "Standardized Value",
+    breaks = c(-2, -1, 0, 1, 2),
+    minor_breaks = NULL,
+    labels = NULL,
+    position = "right") +
+  scale_x_date(name = NULL, 
+               breaks = as_date(
+                 c("2012-08-01", "2012-12-01", "2013-04-01")),
+               minor_breaks = NULL, 
+               date_labels ="%b"
+               ) +
+  coord_cartesian(ylim = c(-2.5, 2.5), clip="off") +
+  geom_vline(xintercept = latest_null)
+```
+
+The y axis label is moved to the right because of how the plots are put together later.
+
+```{r Data Ink daily}
+data_daily_sum %>%
+  ggplot() +
+  geom_line(aes(x = date, y = evn_niceday),
+            color = "red", alpha = 1) +
+  geom_line(aes(x = date, y = mood_enthus_mean),
+            color = "#000000", alpha = .6) +
+  theme_tufte() +
+  scale_y_continuous(
+    name = "Standardized Value",
+    breaks = c(-2,-1, 0, 1, 2),
+    minor_breaks = NULL,
+    labels = NULL
+  ) +
+  scale_x_date(
+    name = NULL,
+    breaks = as_date(c("2012-08-01", "2012-12-01", "2013-04-01")),
+    minor_breaks = NULL,
+    date_labels = "%b",
+    limits = as_date(c("2012-07-30", "2013-04-09"))
+  ) +
+  coord_cartesian(ylim = c(-2.5, 2.5), clip = "off")
+```
+
+
+## Farben und Schrift
+
+Als nächstes habe ich dann eine Farbskala ausgesucht, die robust gegenüber Farbenblindheit ist. Es handelt sich um die Skala "https://rdrr.io/cran/ggthemes/man/colorblind.html":
+
+```{r}
+scales::show_col(colorblind_pal()(4))
+```
+
 
 Allerdings ist der Helligkeitsunterschied zwischen Blau und Gelb zu gering, weshalb sie in schwarz-weiß schlecht unterscheidbar sind:
 
@@ -82,10 +287,143 @@ Allerdings ist der Helligkeitsunterschied zwischen Blau und Gelb zu gering, wesh
 
 ```
 
-Ich habe mich deshalb dazu entschlossen, den Gelbton etwas aufzuhellen und den Blauton etwas dunkler zu machen. Im Anhang finden sich Farbfehlsichtigkeitssimulationen.
+Ich habe mich deshalb dazu entschlossen, den alpha-Wert des Blautons etwas herunterzusetzen.
 
 ```{r}
+ggplot() +
+  # geom_line(
+  #   data = filter(data_weekly,
+  #                 studyweek < upper_week, studyweek > lower_week),
+  #   aes(x = (datetime_help-weeks(studyweek)), y = evn_niceday),
+  #   alpha = .5, color = "#E69F00"
+  # ) +
+  geom_line(
+    data = filter(
+      mutate(data_weekly, SCL_mean = (-1)*scale(SCL_mean),
+             studyweek = studyweek - 1),
+      studyweek < upper_week, studyweek > lower_week),
+    aes(x = (datetime_help-weeks(studyweek + 1)), y = SCL_mean),
+    color = blue, alpha = .5, size = 1
+  ) +
+  geom_line(
+    data = filter(data_daily, studyweek < upper_week, studyweek > lower_week), 
+    aes(x = (datetime-weeks(studyweek)), y = evn_niceday, group = dayno),
+    size = 1.2, color = yellow) + 
+  # geom_line(
+  #   data = filter(data_daily_mean,
+  #                 studyweek < upper_week, studyweek > lower_week), 
+  #   aes(x = (datetime-weeks(studyweek)), y = mood_enthus_mean),
+  #   size = 1, color = "orange") + 
+  geom_point(
+    data = filter(
+      mutate(data_exp, mood_enthus = scale(mood_enthus)),
+      studyweek < upper_week, studyweek > lower_week),
+    aes(x = (datetime-weeks(studyweek)), y = mood_enthus),
+    color = "#000000",
+    size = 1,
+    shape = 1
+  ) +
+  geom_line(
+    data = filter(
+      mutate(data_exp, mood_enthus = scale(mood_enthus)),
+      studyweek < upper_week, studyweek > lower_week), 
+    aes(x = (datetime-weeks(studyweek)), y = mood_enthus, group = date),
+    color = "#000000",
+    size = 0.5
+  ) + 
+  facet_grid(rows = vars(studyweek)) +
+  theme_minimal() +
+  scale_y_continuous(
+    name = "Standardized Value",
+    breaks = c(-2, -1, 0, 1, 2),
+    minor_breaks = NULL,
+    labels = NULL) +
+  scale_x_datetime(name = "First Studyweek", 
+                   breaks = data_daily$datetime[1:14],
+                   minor_breaks = NULL,
+                   labels = NULL) +
+  coord_cartesian(ylim = c(-2.5, 2.5), clip="off") +
+  geom_text(data = x_labels, aes(x = x, y = y, label = label,
+                                 family = "sans")) +
+  theme(axis.title.x = element_text(margin = margin(20, 0, 0, 0)),
+        panel.grid.major.y = element_blank(),
+        legend.position = "none",
+        axis.ticks.y = element_line(),
+        text=element_text(family="sans")) +
+  geom_text(
+    data = line_labels, 
+    aes(x = x, y = y, label = labels, color = color),
+    size = 2.5, hjust = 0, family = "sans"
+    ) +
+  scale_color_manual(values=c("#000000", yellow, "#56B4E9"))
 
+data_daily_sum %>%
+  ggplot() +
+  # geom_ribbon(
+  #   aes(x = date, ymin = evn_niceday, ymax = mood_enthus_mean),
+  #   alpha = .2
+  # ) +
+  geom_line(aes(x = date, y = evn_niceday),
+            color = yellow, alpha = 1) +
+  geom_line(aes(x = date, y = mood_enthus_mean),
+            color = "#000000", alpha = .6) +
+  theme_tufte() +
+  scale_y_continuous(
+    name = "Standardized Value",
+    breaks = c(-2,-1, 0, 1, 2),
+    minor_breaks = NULL,
+    labels = NULL
+  ) +
+  scale_x_date(
+    name = NULL,
+    breaks = as_date(c("2012-08-01", "2012-12-01", "2013-04-01")),
+    minor_breaks = NULL,
+    date_labels = "%b",
+    limits = as_date(c("2012-07-30", "2013-04-09"))
+  ) +
+  coord_cartesian(ylim = c(-2.5, 2.5), clip = "off") +
+  theme(text=element_text(family="sans"))
+
+data_weekly_safe %>%
+  ggplot() +
+  # geom_ribbon(
+  #   aes(x = date, ymin = ribbon_min_1,
+  #       ymax = ribbon_max_1),
+  #   fill = "black",
+  #   alpha = .5
+  # ) +
+  # geom_ribbon(
+  #   aes(x = date, ymin = ribbon_min_2,
+  #       ymax = ribbon_max_2),
+  #   fill = "red",
+  #   alpha = .5
+  # ) +
+  geom_line(aes(x = date, y = evn_niceday), 
+            color = yellow, size = 1) +
+  geom_line(aes(x = date - weeks(1),
+                y = (-1) * scale(SCL_mean)),
+            color = blue, size = 1, alpha = .5) +
+  theme_tufte()  +
+  scale_y_continuous(
+    name = "Standardized Value",
+    breaks = c(-2, -1, 0, 1, 2),
+    minor_breaks = NULL,
+    labels = NULL,
+    position = "right") +
+  scale_x_date(name = NULL, 
+               breaks = as_date(
+                 c("2012-08-01", "2012-12-01", "2013-04-01")),
+               minor_breaks = NULL, 
+               date_labels ="%b"
+               ) +
+  coord_cartesian(ylim = c(-2.5, 2.5), clip="off") +
+  # geom_smooth(aes(x = date, y = evn_niceday), 
+  #           color = "#E69F00", size = 1, se = F) +
+  # geom_smooth(aes(x = date - weeks(1),
+  #               y = (-1) * scale(SCL_mean)),
+  #           color = "#56B4E9", size = 1, se = F) +
+  geom_vline(xintercept = latest_null) +
+  theme(text=element_text(family="sans"))
 ```
 
 ## Weitere Verbesserungen
@@ -93,7 +431,38 @@ Ich habe mich deshalb dazu entschlossen, den Gelbton etwas aufzuhellen und den B
 Außerdem habe ich die Fläche im wöchentlichen Plot eingefärbt, da vor allem der unterschied zwischen täglicher und wöchentlicher Messung von Belang ist:
 
 ```{r}
-
+data_weekly_safe %>%
+  ggplot() +
+  geom_ribbon(
+    aes(x = date, ymin = evn_niceday, ymax = (-1) *SCL_mean_ribbon),
+    alpha = .1
+  ) +
+  geom_line(aes(x = date, y = evn_niceday), 
+            color = yellow, size = 1) +
+  geom_line(aes(x = date - weeks(1),
+                y = (-1) * scale(SCL_mean)),
+            color = blue, size = 1, alpha = .5) +
+  theme_tufte()  +
+  scale_y_continuous(
+    name = "Standardized Value",
+    breaks = c(-2, -1, 0, 1, 2),
+    minor_breaks = NULL,
+    labels = NULL,
+    position = "right") +
+  scale_x_date(name = NULL, 
+               breaks = as_date(
+                 c("2012-08-01", "2012-12-01", "2013-04-01")),
+               minor_breaks = NULL, 
+               date_labels ="%b"
+               ) +
+  coord_cartesian(ylim = c(-2.5, 2.5), clip="off") +
+  # geom_smooth(aes(x = date, y = evn_niceday), 
+  #           color = "#E69F00", size = 1, se = F) +
+  # geom_smooth(aes(x = date - weeks(1),
+  #               y = (-1) * scale(SCL_mean)),
+  #           color = "#56B4E9", size = 1, se = F) +
+  geom_vline(xintercept = latest_null) +
+  theme(text=element_text(family="sans"))
 ```
 
 Ich habe den Flächen ein Vorzeichen gegeben, fand es damit allerdings eher verwirrend:

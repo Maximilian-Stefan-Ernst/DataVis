@@ -1,6 +1,6 @@
 pacman::p_load(tidyverse, ggplot2, here, magrittr, lubridate, lavaan, ggx, hms)
 
-source("little_helpers.R")
+source(here("little_helpers.R"))
 
 
 # preprocessing -----------------------------------------------------------
@@ -217,7 +217,7 @@ data_daily_sum <- data_exp %>%
     date = unique(na.omit(date)),
     evn_niceday = unique_naomit(evn_niceday),
     n_obs = length(na.omit(mood_enthus)),
-    across(c(mood_enthus), 
+    across(contains("mood"), 
            list(mean = mean, sd = sd, max = max, min = min),
            na.rm = T),
     studyweek = unique(studyweek)
