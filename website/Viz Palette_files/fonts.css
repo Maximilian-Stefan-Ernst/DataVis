@@ -1,0 +1,29 @@
+@font-face {
+  font-family: HelveticaNeue;
+  font-weight: 300;
+  src: url("../fonts/35A390_0_0.eot");
+  src: url("../fonts/35A390_0_0.eot?#iefix") format("embedded-opentype"),
+    url("../fonts/35A390_0_0.woff2") format("woff2"),
+    url("../fonts/35A390_0_0.woff") format("woff"),
+    url("../fonts/35A390_0_0.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: HelveticaNeue;
+  font-weight: 900;
+  src: url("../fonts/35A390_1_0.eot");
+  src: url("../fonts/35A390_1_0.eot?#iefix") format("embedded-opentype"),
+    url("../fonts/35A390_1_0.woff2") format("woff2"),
+    url("../fonts/35A390_1_0.woff") format("woff"),
+    url("../fonts/35A390_1_0.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: HelveticaNeue;
+  font-weight: 100;
+  src: url("../fonts/35A390_2_0.eot");
+  src: url("../fonts/35A390_2_0.eot?#iefix") format("embedded-opentype"),
+    url("../fonts/35A390_2_0.woff2") format("woff2"),
+    url("../fonts/35A390_2_0.woff") format("woff"),
+    url("../fonts/35A390_2_0.ttf") format("truetype");
+}

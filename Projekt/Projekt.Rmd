@@ -6,11 +6,11 @@ output: pdf_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(echo = FALSE, warning=FALSE, fig.align="center")
 
 pacman::p_load(tidyverse, ggplot2, 
                here, magrittr, lubridate, lavaan, ggx, hms,
-               viridis, ggthemes)
+               viridis, ggthemes, cowplot)
 
 source(here("little_helpers.R"), local = knitr::knit_global())
 source(here("R/tidy.R"), local = knitr::knit_global())
@@ -67,7 +67,7 @@ Aufgrund der sehr komplexen Struktur der Daten habe ich mich zunächst dazu ents
 
 Dazu habe ich zunächst die Messungen der Items verschiedener Zeitskalen in einer Visualisierung dargestellt:
 
-```{r data_first, warning=FALSE}
+```{r data_first, warning=FALSE, out.height="25%"}
 ggplot() +
   geom_line(
     data = filter(data_weekly,
@@ -100,11 +100,9 @@ ggplot() +
 
 # Darstellung 2: Effekt
 
-Zum zweiten möchte ich einen Vergleich zwischen den erhobenen Items auf verschiedenen Zeitskalen anstellen. Dazu habe ich 
-1. Aus dem mehrmals täglich erhobenen Item den Tagesmittelwert gebildet - um ihn mit dem täglich erhobenen Item zu vergleichem
-2. Aus dem täglich erhobenen Item den Wochenmittelwert gebildet - um diesen mit dem wöchentlich erhobenen Item zu vergleichen.
+Zum zweiten möchte ich einen Vergleich zwischen den auf verschiedenen Zeitskalen erhobenen Items anstellen. Dazu habe ich 
 
-?noch genauer auf Itemauswahl eingehen?
+1. Aus dem mehrmals täglich erhobenen Item den Tagesmittelwert gebildet - um ihn mit dem täglich erhobenen Item zu vergleichen
 
 ```{r, include = FALSE}
 latest_start <- min(data$date) + weeks(10)
@@ -129,9 +127,7 @@ data_weekly_safe %<>%
 ```
 
 
-Für den Vergleich habe ich dann die folgenden beiden Grafiken erstellt:
-
-```{r daily_plot_old, warning=FALSE}
+```{r daily_plot_old, warning=FALSE, out.height="38%"}
 data_daily_sum %>%
   ggplot() +
   geom_line(aes(x = date, y = evn_niceday),
@@ -140,7 +136,9 @@ data_daily_sum %>%
             color = "#000000", alpha = .6) 
 ```
 
-```{r weekly_plot_old, warning=FALSE}
+2. Aus dem täglich erhobenen Item den Wochenmittelwert gebildet - um diesen mit dem wöchentlich erhobenen Item zu vergleichen.
+
+```{r weekly_plot_old, warning=FALSE, out.height="38%"}
 data_weekly_safe %>%
   ggplot() +
   geom_line(aes(x = date, y = evn_niceday), 
@@ -150,7 +148,7 @@ data_weekly_safe %>%
             color = "black", size = 1) 
 ```
 
-Man sieht, dass es keine systematische Veränderung im ersten Plot über die Zeit gibt, im zweiten Plot sieht man jedoch, dass sie die depressiven Symptome über die Zeit hinweg verschlimmern, während der Wochenmittelwert "schöner Tage" konstant bleibt. Diesem Effekt habe ich mich dann entschieden genauer zu untersuchen.
+Man sieht, dass es keine systematische Veränderung über die Zeit im ersten Plot gibt. Im zweiten Plot allerdings verschlimmern sich die depressiven Symptome über die Zeit, während der Wochenmittelwert "schöner Tage" konstant bleibt. Diesem Effekt habe ich mich dann entschieden genauer zu untersuchen.
 
 Dazu habe ich zunächst verschiedene weitere Aggregationsmethoden außer des Wochenmittels genutzt (max, min, sd) um zu überprüfen, ob diese stärker mit der Depressionsskala zusammenhängen, was jedoch nicht der Fall ist.
 
@@ -167,7 +165,9 @@ data_weekly_safe %>%
   geom_vline(xintercept = latest_null)
 ```
 
-Diese Visualisierung legt eher den Schluss nahe, dass es sich um einen Placebo effekt handelt - das tägliche Item zeigt keine systematische Verschlechterung, die Depressionsskala schon.
+Diese Visualisierung legt eher den Schluss nahe, dass es sich um einen Placebo-Effekt handelt - das tägliche Item zeigt keine systematische Verschlechterung, die Depressionsskala schon.
+
+\newpage
 
 # Verbesserung der Grafiken
 
@@ -217,9 +217,9 @@ ggplot() +
         text=element_text(family="sans"))
 ```
 
-I decided to set vertical lines at the end of each day to resemble the familiar look of a calendar. I also decided to set y-Axis breaks at the first and second standard deviation. (I have no idea where the 0 on the right side of the plot comes from; I later removed that in Inkscape)
+Ich habe vertikale Linien am Ende jedes Tages gezogen, um das bekannte Aussehen eines Kalenders nachzuahmen. Außerdem habe ich Markierungen an der y-Achse bei der ersten und zweiten Standardabweichung gesetzt. (Ich weiß nicht woher die 0 auf der rechten Seite der Abbildung kommt; diese habe ich später in Inkscape entfernt).
 
-```{r Data Ink weekly}
+```{r Data Ink weekly, out.height="40%"}
 data_weekly_safe %>%
   ggplot() +
   geom_line(aes(x = date, y = evn_niceday), 
@@ -245,9 +245,9 @@ data_weekly_safe %>%
   geom_vline(xintercept = latest_null)
 ```
 
-The y axis label is moved to the right because of how the plots are put together later.
+Die y-Achsenbeschriftung wurde nach rechts verschoben um die Plots später zusammenzufügen.
 
-```{r Data Ink daily}
+```{r Data Ink daily, out.heigth="40%"}
 data_daily_sum %>%
   ggplot() +
   geom_line(aes(x = date, y = evn_niceday),
@@ -276,20 +276,21 @@ data_daily_sum %>%
 
 Als nächstes habe ich dann eine Farbskala ausgesucht, die robust gegenüber Farbenblindheit ist. Es handelt sich um die Skala "https://rdrr.io/cran/ggthemes/man/colorblind.html":
 
-```{r}
+```{r, out.height="40%"}
 scales::show_col(colorblind_pal()(4))
 ```
 
-
 Allerdings ist der Helligkeitsunterschied zwischen Blau und Gelb zu gering, weshalb sie in schwarz-weiß schlecht unterscheidbar sind:
 
-```{r black white}
-
+```{r black white, out.height="40%"}
+knitr::include_graphics('grey.png')
 ```
 
 Ich habe mich deshalb dazu entschlossen, den alpha-Wert des Blautons etwas herunterzusetzen.
 
-```{r}
+Die Grafiken sehen dann so aus:
+
+```{r, out.width="80%"}
 ggplot() +
   # geom_line(
   #   data = filter(data_weekly,
@@ -430,7 +431,7 @@ data_weekly_safe %>%
 
 Außerdem habe ich die Fläche im wöchentlichen Plot eingefärbt, da vor allem der unterschied zwischen täglicher und wöchentlicher Messung von Belang ist:
 
-```{r}
+```{r, out.width="80%"}
 data_weekly_safe %>%
   ggplot() +
   geom_ribbon(
@@ -465,17 +466,24 @@ data_weekly_safe %>%
   theme(text=element_text(family="sans"))
 ```
 
-Ich habe den Flächen ein Vorzeichen gegeben, fand es damit allerdings eher verwirrend:
-
-```{r}
-
-```
-
 ## Layout
 
 Der Betrachter sollte zunächst die Überblicksgrafik anschauen, um sich ein Bild von den Daten zu machen, weshalb ich diese auf der linken Seite plaziert habe. Die wöchentliche Grafik habe ich dann rechts davon plaziert, da die y - Skala gleich ist und somit der Zusammenhang zwischen den Grafiken besser ersichtlich wird. Um diesen weiter zu verdeutlichen, habe ich die korrespondieren Daten gleich eingefärbt und mit Pfeilen verbunden, die mit der Aggregationsmethode beschriftet sind. Da die Grafik mit den täglich erhobenen Daten sehr viele Messzeitpunkte enthält und deshalb schwer zu lesen ist, und außerdem das Layout verkomplifiziert, habe ich mich dazu entschieden sie wegzulassen.
 
-```{r}
+\newpage
 
+# Feedback
+
+Nach dem Feedback von Herrn Professor Rolfs habe ich die Werte des Antidepressivum-Graphens an die Achse geschrieben. Außerdem habe ich nochmal den Titel überarbeitet. Ich habe mich für eine Mischung aus den Vorschlägen von Herrn Professor Rolfs entschieden; "While the days remain nice, depression detoriates". Ich hoffe, dass der Leser dann versteht, dass niedrigere Werte eine Verschlimmerung der Depression anzeigen. Ich wollte ungern "mood" statt "depression" schreiben, da die Studie insgesamt eher ein klinisches Setting hat und der Partizipant auch an Depressionen erkrankt ist. Umkodieren wollte ich die Depressionswerte allerdings auch nicht, weil ich dann auch alle anderen Variablen umkodieren müsste, und damit umbenennen. Außerdem habe ich die Titel links und rechts überarbeitet, sodass sie die Zeiträume beinhalten. Da bei dem rechten Graph die Daten wöchentlich erhoben wurden, habe ich den Zeitraum in Wochen angegeben.
+
+# Finaler Graph
+
+Hier nun einige Farbfehlsichtigkeitssimulationen und am Ende der finale Graph.
+
+```{r, out.width="80%"}
+knitr::include_graphics("deuteranopia.png")
+knitr::include_graphics("protanopia.png")
+knitr::include_graphics("tritanopia.png")
+knitr::include_graphics("achromatopsia.png")
 ```
 
